@@ -2,8 +2,39 @@
 <html>
 <head>
   <title>Idéarchive</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
   <h1>Bienvenue sur Idéarchive</h1>
+
+  <h2>Ajouter un concept</h2>
+  <input id="title" placeholder="Titre du concept">
+  <br><br>
+  <textarea id="description" placeholder="Description"></textarea>
+  <br><br>
+  <button onclick="addConcept()">Ajouter</button>
+
+  <script>
+    const supabaseUrl = 'VOTRE_PROJECT_URL';
+    const supabaseKey = 'VOTRE_ANON_KEY';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function addConcept() {
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+
+      const { data, error } = await supabaseClient
+        .from('concepts')
+        .insert([{ title: title, description: description }]);
+
+      if (error) {
+        alert(error.message);
+      } else {
+        alert("Concept ajouté !");
+      }
+    }
+  </script>
+
 </body>
 </html>
