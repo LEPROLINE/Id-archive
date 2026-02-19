@@ -8,6 +8,16 @@
 
   <h1>Bienvenue sur Idéarchive</h1>
 
+  <!-- FORMULAIRE DE CONNEXION -->
+  <h2>Connexion</h2>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Mot de passe">
+  <button onclick="signIn()">Se connecter</button>
+  <button onclick="signUp()">Créer un compte</button>
+
+  <hr>
+
+  <!-- FORMULAIRE POUR AJOUTER UN CONCEPT -->
   <h2>Ajouter un concept</h2>
   <input id="title" placeholder="Titre du concept">
   <br><br>
@@ -16,23 +26,56 @@
   <button onclick="addConcept()">Ajouter</button>
 
   <script>
+    // Remplace par tes infos Supabase
     const supabaseUrl = 'VOTRE_PROJECT_URL';
     const supabaseKey = 'VOTRE_ANON_KEY';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
+    // CRÉER UN COMPTE
+    async function signUp() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { user, error } = await supabaseClient.auth.signUp({
+        email: email,
+        password: password,
+      });
+
+      if (error) alert(error.message);
+      else alert("Compte créé, vérifie ton email !");
+    }
+
+    // SE CONNECTER
+    async function signIn() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { user, error } = await supabaseClient.auth.signIn({
+        email: email,
+        password: password,
+      });
+
+      if (error) alert(error.message);
+      else alert("Connecté !");
+    }
+
+    // AJOUTER UN CONCEPT (uniquement si connecté)
     async function addConcept() {
+      const user = supabaseClient.auth.user();
+      if (!user) { 
+        alert("Connecte-toi d'abord"); 
+        return; 
+      }
+
       const title = document.getElementById('title').value;
       const description = document.getElementById('description').value;
 
       const { data, error } = await supabaseClient
         .from('concepts')
-        .insert([{ title: title, description: description }]);
+        .insert([{ title: title, description: description, author_id: user.id }]);
 
-      if (error) {
-        alert(error.message);
-      } else {
-        alert("Concept ajouté !");
-      }
+      if (error) alert(error.message);
+      else alert("Concept ajouté !");
     }
   </script>
 
