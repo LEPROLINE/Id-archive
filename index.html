@@ -28,8 +28,8 @@
 
   <!-- SCRIPT SUPABASE -->
   <script>
-    // Remplace par ton URL Supabase et ta clé anon
-    const supabaseUrl = 'https://ton-projet.supabase.co';
+    // Ton URL et clé Supabase
+    const supabaseUrl = 'https://uqhdnanixbeqhxqeuoyr.supabase.co';
     const supabaseKey = 'sb_publishable_DX9r-MlcrNa7nID6oluqNg_9D72CwD4';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
@@ -38,13 +38,19 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      const { user, error } = await supabaseClient.auth.signUp({
-        email: email,
-        password: password,
-      });
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email: email,
+          password: password
+        });
 
-      if (error) alert(error.message);
-      else alert("Compte créé, vérifie ton email !");
+        if (error) throw error;
+        alert("Compte créé ! Vérifie ton email si l’option de confirmation est activée.");
+        console.log(data);
+      } catch (err) {
+        alert("Erreur : " + err.message);
+        console.error(err);
+      }
     }
 
     // SE CONNECTER
@@ -52,13 +58,19 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      const { user, error } = await supabaseClient.auth.signIn({
-        email: email,
-        password: password,
-      });
+      try {
+        const { data, error } = await supabaseClient.auth.signIn({
+          email: email,
+          password: password
+        });
 
-      if (error) alert(error.message);
-      else alert("Connecté !");
+        if (error) throw error;
+        alert("Connecté !");
+        console.log(data);
+      } catch (err) {
+        alert("Erreur : " + err.message);
+        console.error(err);
+      }
     }
 
     // AJOUTER UN CONCEPT (uniquement si connecté)
@@ -72,12 +84,18 @@
       const title = document.getElementById('title').value;
       const description = document.getElementById('description').value;
 
-      const { data, error } = await supabaseClient
-        .from('concepts')
-        .insert([{ title: title, description: description, author_id: user.id }]);
+      try {
+        const { data, error } = await supabaseClient
+          .from('concepts')
+          .insert([{ title: title, description: description, author_id: user.id }]);
 
-      if (error) alert(error.message);
-      else alert("Concept ajouté !");
+        if (error) throw error;
+        alert("Concept ajouté !");
+        console.log(data);
+      } catch (err) {
+        alert("Erreur : " + err.message);
+        console.error(err);
+      }
     }
   </script>
 
