@@ -1,53 +1,85 @@
-<script>
-  // Mets ici ton URL Supabase et ta clé anon
-  const supabaseUrl = 'https://ton-projet.supabase.co'; // remplace par ton URL Supabase
-  const supabaseKey = 'sb_publishable_DX9r-MlcrNa7nID6oluqNg_9D72CwD4';
-  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Idéarchive</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
 
-  // CREER UN COMPTE
-  async function signUp() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+  <h1>Bienvenue sur Idéarchive</h1>
 
-    const { user, error } = await supabaseClient.auth.signUp({
-      email: email,
-      password: password,
-    });
+  <!-- FORMULAIRE DE CONNEXION -->
+  <h2>Connexion / Créer un compte</h2>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Mot de passe">
+  <button onclick="signIn()">Se connecter</button>
+  <button onclick="signUp()">Créer un compte</button>
 
-    if (error) alert(error.message);
-    else alert("Compte créé, vérifie ton email !");
-  }
+  <hr>
 
-  // SE CONNECTER
-  async function signIn() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+  <!-- FORMULAIRE POUR AJOUTER UN CONCEPT -->
+  <h2>Ajouter un concept</h2>
+  <input id="title" placeholder="Titre du concept">
+  <br><br>
+  <textarea id="description" placeholder="Description"></textarea>
+  <br><br>
+  <button onclick="addConcept()">Ajouter</button>
 
-    const { user, error } = await supabaseClient.auth.signIn({
-      email: email,
-      password: password,
-    });
+  <!-- SCRIPT SUPABASE -->
+  <script>
+    // Remplace par ton URL Supabase et ta clé anon
+    const supabaseUrl = 'https://ton-projet.supabase.co';
+    const supabaseKey = 'sb_publishable_DX9r-MlcrNa7nID6oluqNg_9D72CwD4';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    if (error) alert(error.message);
-    else alert("Connecté !");
-  }
+    // CREER UN COMPTE
+    async function signUp() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
 
-  // AJOUTER UN CONCEPT
-  async function addConcept() {
-    const user = supabaseClient.auth.user();
-    if (!user) { 
-      alert("Connecte-toi d'abord"); 
-      return; 
+      const { user, error } = await supabaseClient.auth.signUp({
+        email: email,
+        password: password,
+      });
+
+      if (error) alert(error.message);
+      else alert("Compte créé, vérifie ton email !");
     }
 
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
+    // SE CONNECTER
+    async function signIn() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
 
-    const { data, error } = await supabaseClient
-      .from('concepts')
-      .insert([{ title: title, description: description, author_id: user.id }]);
+      const { user, error } = await supabaseClient.auth.signIn({
+        email: email,
+        password: password,
+      });
 
-    if (error) alert(error.message);
-    else alert("Concept ajouté !");
-  }
-</script>
+      if (error) alert(error.message);
+      else alert("Connecté !");
+    }
+
+    // AJOUTER UN CONCEPT (uniquement si connecté)
+    async function addConcept() {
+      const user = supabaseClient.auth.user();
+      if (!user) { 
+        alert("Connecte-toi d'abord"); 
+        return; 
+      }
+
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+
+      const { data, error } = await supabaseClient
+        .from('concepts')
+        .insert([{ title: title, description: description, author_id: user.id }]);
+
+      if (error) alert(error.message);
+      else alert("Concept ajouté !");
+    }
+  </script>
+
+</body>
+</html>
