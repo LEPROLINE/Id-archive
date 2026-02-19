@@ -1,6 +1,6 @@
 <script>
-  // Remplace par ton URL Supabase et ta clé anon
-  const supabaseUrl = 'https://ton-projet.supabase.co';
+  // Mets ici ton URL Supabase et ta clé anon
+  const supabaseUrl = 'https://ton-projet.supabase.co'; // remplace par ton URL Supabase
   const supabaseKey = 'sb_publishable_DX9r-MlcrNa7nID6oluqNg_9D72CwD4';
   const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
@@ -32,7 +32,7 @@
     else alert("Connecté !");
   }
 
-  // AJOUTER UN CONCEPT (uniquement si connecté)
+  // AJOUTER UN CONCEPT
   async function addConcept() {
     const user = supabaseClient.auth.user();
     if (!user) { 
