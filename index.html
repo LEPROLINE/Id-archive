@@ -1,56 +1,191 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Idéarchive Test Auth</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<title>Idéarchive</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #222; color: #fff; }
+  .brand { font-weight: bold; font-size: 1.5em; }
+  .user-menu { position: relative; cursor: pointer; }
+  .user-circle { width: 40px; height: 40px; border-radius: 50%; background: #555; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; }
+  .dropdown { display: none; position: absolute; right: 0; top: 50px; background: #fff; color: #000; border: 1px solid #ccc; border-radius: 5px; width: 200px; }
+  .dropdown button { width: 100%; padding: 10px; border: none; background: none; cursor: pointer; text-align: left; }
+  .dropdown button:hover { background: #eee; }
+  .container { padding: 20px; max-width: 600px; margin: auto; }
+  input, textarea, button { display: block; width: 100%; margin-bottom: 10px; padding: 8px; }
+  @media (max-width: 600px) { .container { padding: 10px; } }
+</style>
 </head>
 <body>
 
-  <h1>Idéarchive - Test Auth</h1>
+<header>
+  <div class="brand">Idéarchive</div>
+  <div class="user-menu" id="userMenu">
+    <div class="user-circle" id="userInitial">?</div>
+    <div class="dropdown" id="dropdownMenu">
+      <button onclick="showConcepts()">Mes concepts</button>
+      <button onclick="showMessages()">Boîte de réception</button>
+      <button onclick="signOut()">Déconnexion</button>
+    </div>
+  </div>
+</header>
 
+<div class="container">
+
+  <h2>Créer un compte</h2>
+  <input id="pseudo" placeholder="Pseudo">
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Mot de passe">
-  <br><br>
-  <button onclick="signUp()">Créer un compte</button>
+  <input id="avatar" type="file" accept="image/*">
+  <button onclick="signUp()">Créer le compte</button>
+
+  <hr>
+
+  <h2>Connexion</h2>
+  <input id="emailLogin" type="email" placeholder="Email">
+  <input id="passwordLogin" type="password" placeholder="Mot de passe">
   <button onclick="signIn()">Se connecter</button>
 
-  <script>
-    // URL et clé Supabase
-    const supabaseUrl = 'https://uqhdnanixbeqhxqeuoyr.supabase.co';
-    const supabaseKey = 'sb_publishable_DX9r-MlcrNa7nID6oluqNg_9D72CwD4';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+  <hr>
 
-    async function signUp() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+  <h2>Ajouter un concept</h2>
+  <input id="title" placeholder="Titre du concept">
+  <textarea id="description" placeholder="Description"></textarea>
+  <button onclick="addConcept()">Ajouter</button>
 
-      try {
-        const { data, error } = await supabaseClient.auth.signUp({ email, password });
-        if (error) throw error;
-        alert("Compte créé ! Tu peux maintenant te connecter.");
-        console.log(data);
-      } catch (err) {
-        alert("Erreur : " + err.message);
-        console.error(err);
-      }
+  <hr>
+
+  <div id="output"></div>
+
+</div>
+
+<script>
+const supabaseUrl = 'https://uqhdnanixbeqhxqeuoyr.supabase.co';
+const supabaseKey = 'sb_publishable_DX9r-MlcrNa7nID6oluqNg_9D72CwD4';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+const userMenu = document.getElementById('userMenu');
+const dropdown = document.getElementById('dropdownMenu');
+const userInitial = document.getElementById('userInitial');
+
+userMenu.addEventListener('click', () => {
+  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+});
+
+// CREER COMPTE
+async function signUp() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const pseudo = document.getElementById('pseudo').value;
+  const avatarFile = document.getElementById('avatar').files[0];
+
+  if(!pseudo || !email || !password) { alert("Remplis tous les champs"); return; }
+
+  try {
+    // Créer l'utilisateur
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+    if(signUpError) throw signUpError;
+
+    const userId = signUpData.user.id;
+
+    // Upload avatar si fourni
+    let avatarUrl = null;
+    if(avatarFile) {
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('avatars')
+        .upload('public/' + userId + '-' + avatarFile.name, avatarFile);
+      if(storageError) throw storageError;
+      avatarUrl = supabase.storage.from('avatars').getPublicUrl(storageData.path).data.publicUrl;
     }
 
-    async function signIn() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+    // Enregistrer pseudo et avatar dans table "profiles"
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([{ id: userId, pseudo: pseudo, avatar_url: avatarUrl }]);
+    if(profileError) throw profileError;
 
-      try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        alert("Connecté !");
-        console.log(data);
-      } catch (err) {
-        alert("Erreur : " + err.message);
-        console.error(err);
-      }
-    }
-  </script>
+    alert("Compte créé !");
+  } catch(err) {
+    alert("Erreur : " + err.message);
+    console.error(err);
+  }
+}
+
+// SE CONNECTER
+async function signIn() {
+  const email = document.getElementById('emailLogin').value;
+  const password = document.getElementById('passwordLogin').value;
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+
+    alert("Connecté !");
+    const user = data.user;
+
+    // Récupérer pseudo pour afficher initiale
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    if(profile) userInitial.textContent = profile.pseudo.charAt(0).toUpperCase();
+  } catch(err) {
+    alert("Erreur : " + err.message);
+    console.error(err);
+  }
+}
+
+// DECONNEXION
+async function signOut() {
+  await supabase.auth.signOut();
+  userInitial.textContent = "?";
+  dropdown.style.display = 'none';
+  alert("Déconnecté !");
+}
+
+// AJOUTER UN CONCEPT
+async function addConcept() {
+  const user = supabase.auth.user();
+  if(!user) { alert("Connecte-toi d'abord"); return; }
+
+  const title = document.getElementById('title').value;
+  const description = document.getElementById('description').value;
+
+  try {
+    const { error } = await supabase
+      .from('concepts')
+      .insert([{ title, description, author_id: user.id }]);
+    if(error) throw error;
+    alert("Concept ajouté !");
+  } catch(err) {
+    alert("Erreur : " + err.message);
+    console.error(err);
+  }
+}
+
+// AFFICHER CONCEPTS
+async function showConcepts() {
+  const user = supabase.auth.user();
+  if(!user) { alert("Connecte-toi d'abord"); return; }
+
+  const { data, error } = await supabase.from('concepts').select('*').eq('author_id', user.id);
+  if(error) { alert(error.message); return; }
+
+  const output = document.getElementById('output');
+  output.innerHTML = "<h3>Mes Concepts :</h3>" + data.map(c => `<p><b>${c.title}</b>: ${c.description}</p>`).join('');
+}
+
+// BOÎTE DE RÉCEPTION (messages)
+async function showMessages() {
+  const user = supabase.auth.user();
+  if(!user) { alert("Connecte-toi d'abord"); return; }
+
+  const { data, error } = await supabase.from('messages').select('*').eq('receiver_id', user.id);
+  if(error) { alert(error.message); return; }
+
+  const output = document.getElementById('output');
+  output.innerHTML = "<h3>Boîte de réception :</h3>" + data.map(m => `<p><b>${m.sender_pseudo}</b>: ${m.content}</p>`).join('');
+}
+</script>
 
 </body>
 </html>
