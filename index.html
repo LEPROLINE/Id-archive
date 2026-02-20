@@ -2,47 +2,33 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Idéarchive</title>
+  <title>Idéarchive Test Auth</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <h1>Bienvenue sur Idéarchive</h1>
+  <h1>Idéarchive - Test Auth</h1>
 
-  <!-- FORMULAIRE DE CONNEXION -->
-  <h2>Connexion / Créer un compte</h2>
   <input id="email" type="email" placeholder="Email">
   <input id="password" type="password" placeholder="Mot de passe">
-  <button onclick="signIn()">Se connecter</button>
+  <br><br>
   <button onclick="signUp()">Créer un compte</button>
+  <button onclick="signIn()">Se connecter</button>
 
-  <hr>
-
-  <!-- FORMULAIRE POUR AJOUTER UN CONCEPT -->
-  <h2>Ajouter un concept</h2>
-  <input id="title" placeholder="Titre du concept">
-  <br><br>
-  <textarea id="description" placeholder="Description"></textarea>
-  <br><br>
-  <button onclick="addConcept()">Ajouter</button>
-
-  <!-- SCRIPT SUPABASE -->
   <script>
     // URL et clé Supabase
     const supabaseUrl = 'https://uqhdnanixbeqhxqeuoyr.supabase.co';
     const supabaseKey = 'sb_publishable_DX9r-MlcrNa7nID6oluqNg_9D72CwD4';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // CREER UN COMPTE
     async function signUp() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
       try {
         const { data, error } = await supabaseClient.auth.signUp({ email, password });
-
         if (error) throw error;
-        alert("Compte créé ! Vérifie ton email si la confirmation est activée.");
+        alert("Compte créé ! Tu peux maintenant te connecter.");
         console.log(data);
       } catch (err) {
         alert("Erreur : " + err.message);
@@ -50,41 +36,14 @@
       }
     }
 
-    // SE CONNECTER
     async function signIn() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
         if (error) throw error;
         alert("Connecté !");
-        console.log(data);
-      } catch (err) {
-        alert("Erreur : " + err.message);
-        console.error(err);
-      }
-    }
-
-    // AJOUTER UN CONCEPT (uniquement si connecté)
-    async function addConcept() {
-      const user = supabaseClient.auth.user();
-      if (!user) { 
-        alert("Connecte-toi d'abord"); 
-        return; 
-      }
-
-      const title = document.getElementById('title').value;
-      const description = document.getElementById('description').value;
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('concepts')
-          .insert([{ title: title, description: description, author_id: user.id }]);
-
-        if (error) throw error;
-        alert("Concept ajouté !");
         console.log(data);
       } catch (err) {
         alert("Erreur : " + err.message);
