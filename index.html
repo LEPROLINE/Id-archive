@@ -28,7 +28,7 @@
 
   <!-- SCRIPT SUPABASE -->
   <script>
-    // Ton URL et clé Supabase
+    // URL et clé Supabase
     const supabaseUrl = 'https://uqhdnanixbeqhxqeuoyr.supabase.co';
     const supabaseKey = 'sb_publishable_DX9r-MlcrNa7nID6oluqNg_9D72CwD4';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
@@ -39,13 +39,10 @@
       const password = document.getElementById('password').value;
 
       try {
-        const { data, error } = await supabaseClient.auth.signUp({
-          email: email,
-          password: password
-        });
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
         if (error) throw error;
-        alert("Compte créé ! Vérifie ton email si l’option de confirmation est activée.");
+        alert("Compte créé ! Vérifie ton email si la confirmation est activée.");
         console.log(data);
       } catch (err) {
         alert("Erreur : " + err.message);
@@ -59,10 +56,7 @@
       const password = document.getElementById('password').value;
 
       try {
-        const { data, error } = await supabaseClient.auth.signIn({
-          email: email,
-          password: password
-        });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
         if (error) throw error;
         alert("Connecté !");
